@@ -88,7 +88,7 @@ src/
 
 ### Install
 ```bash
-git clone https://github.com/YOUR_USERNAME/olx-lebanon-app.git
+git clone https://github.com/leo-marida/olx-lebanon-app.git
 cd olx-lebanon-app
 npm install
 ```
