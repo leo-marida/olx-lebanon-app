@@ -51,17 +51,22 @@ if (filters.query && filters.query.trim() !== '') {
   });
 }
 
-  // Price range
+  // Price range — use 'price' field directly
+const priceMin = filters.priceMin;
+const priceMax = filters.priceMax;
+if (
+  (priceMin !== undefined && priceMin > 0) ||
+  (priceMax !== undefined && priceMax > 0)
+) {
   const priceFilter: any = {};
-  if (filters.priceMin !== undefined && filters.priceMin > 0) {
-    priceFilter.gte = filters.priceMin;
-  }
-  if (filters.priceMax !== undefined && filters.priceMax > 0) {
-    priceFilter.lte = filters.priceMax;
-  }
-  if (Object.keys(priceFilter).length > 0) {
-    must.push({ range: { price: priceFilter } });
-  }
+  if (priceMin !== undefined && priceMin > 0) priceFilter.gte = priceMin;
+  if (priceMax !== undefined && priceMax > 0) priceFilter.lte = priceMax;
+  must.push({
+    range: {
+      price: priceFilter,
+    },
+  });
+}
 
   // Condition filter
   if (filters.condition) {
@@ -129,17 +134,35 @@ if (filters.query && filters.query.trim() !== '') {
   return `${header}\n${body}\n`;
 };
 
+const getImageUrl = (url?: string): string => {
+  if (!url) return '';
+  if (url.startsWith('http://')) return url.replace('http://', 'https://');
+  if (url.startsWith('https://')) return url;
+  if (url.startsWith('//')) return `https:${url}`;
+  return `https://www.olx.com.lb${url}`;
+};
+
 const mapHit = (hit: any): Ad => {
   const src = hit._source ?? {};
+
+  let extraFields: Record<string, any> = {};
+  if (Array.isArray(src.extraFields)) {
+    src.extraFields.forEach((f: any) => {
+      if (f.key) extraFields[f.key] = f.value;
+    });
+  } else if (src.extraFields && typeof src.extraFields === 'object') {
+    extraFields = src.extraFields;
+  }
+
   return {
-    id: hit._id ?? `ad-${Date.now()}-${Math.random()}`,
+    id: hit._id ?? `ad-${Math.random()}`,
     title: src.title ?? '',
     price: src.price ?? undefined,
     currency: src.currency ?? 'USD',
     images: Array.isArray(src.images)
       ? src.images.map((img: any) => ({
-          id: img.id ?? String(Math.random()),
-          url: img.url ?? '',
+          id: img.id ?? '',
+          url: getImageUrl(img.url ?? img.src ?? ''),
         }))
       : [],
     location: {
@@ -153,7 +176,7 @@ const mapHit = (hit: any): Ad => {
     timestamp: src.timestamp ?? 0,
     isElite: src.isElite ?? false,
     isHighlighted: src.isHighlighted ?? false,
-    extraFields: src.extraFields ?? {},
+    extraFields,
   };
 };
 

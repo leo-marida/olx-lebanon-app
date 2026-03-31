@@ -23,9 +23,11 @@ import { useFilterStore } from '../../store/useFilterStore';
 import { useDebouncedSearch } from '../../hooks/useDebouncedSearch';
 import { useCategories } from '../../hooks/useCategories';
 import { Ad } from '../../types/ad';
+import { useAppStore } from '../../store/useAppStore';
 
 export const SearchResultsScreen: React.FC = () => {
   const { t } = useTranslation();
+  const savedAds = useAppStore(s => s.savedAds);
   const navigation = useNavigation<any>();
   const [localQuery, setLocalQuery] = useState('');
   const [showSortModal, setShowSortModal] = useState(false);
@@ -280,7 +282,8 @@ export const SearchResultsScreen: React.FC = () => {
         <FlatList
           data={regularAds}
           keyExtractor={(item, index) => `${item.id}-${index}`}
-          renderItem={({ item }) => <AdCard ad={item} variant="list" />}
+          extraData={savedAds}
+          renderItem={({ item }) => <AdCard ad={item} variant="list" onPress={() => {}} />}
           ListHeaderComponent={renderHeader}
           ListEmptyComponent={() => (
             <View style={styles.empty}>
