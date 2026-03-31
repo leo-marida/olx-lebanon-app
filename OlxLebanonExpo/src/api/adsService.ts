@@ -7,61 +7,112 @@ const PAGE_SIZE = 12;
 const buildAdsQuery = (filters: Partial<FilterState>, from = 0) => {
   const must: any[] = [];
 
-  if (filters.categoryExternalID) {
+  // Category filter
+  if (filters.categoryExternalID && filters.categoryExternalID !== '') {
     must.push({
       term: { 'category.externalID': filters.categoryExternalID },
     });
   }
 
-  if (filters.locationExternalID && filters.locationExternalID !== '0-1') {
+  // Location filter
+  if (
+    filters.locationExternalID &&
+    filters.locationExternalID !== '' &&
+    filters.locationExternalID !== '0-1'
+  ) {
     must.push({
       term: { 'location.externalID': filters.locationExternalID },
     });
   }
 
-  if (filters.condition) {
-    must.push({
-      term: { 'extraFields.condition': filters.condition },
-    });
-  }
+  // Text search
+if (filters.query && filters.query.trim() !== '') {
+  must.push({
+    bool: {
+      should: [
+        {
+          multi_match: {
+            query: filters.query.trim(),
+            fields: ['title^3', 'description^1'],
+            type: 'best_fields',
+            fuzziness: 'AUTO',
+          },
+        },
+        {
+          multi_match: {
+            query: filters.query.trim(),
+            fields: ['title^3', 'description^1'],
+            type: 'phrase_prefix',
+          },
+        },
+      ],
+      minimum_should_match: 1,
+    },
+  });
+}
 
-  if (filters.dynamicFilters) {
-    Object.entries(filters.dynamicFilters).forEach(([key, value]) => {
-      if (value) {
-        must.push({ term: { [`extraFields.${key}`]: value } });
-      }
-    });
-  }
-
+  // Price range
   const priceFilter: any = {};
-  if (filters.priceMin !== undefined) priceFilter.gte = filters.priceMin;
-  if (filters.priceMax !== undefined) priceFilter.lte = filters.priceMax;
+  if (filters.priceMin !== undefined && filters.priceMin > 0) {
+    priceFilter.gte = filters.priceMin;
+  }
+  if (filters.priceMax !== undefined && filters.priceMax > 0) {
+    priceFilter.lte = filters.priceMax;
+  }
   if (Object.keys(priceFilter).length > 0) {
     must.push({ range: { price: priceFilter } });
   }
 
-  if (filters.query && filters.query.trim()) {
+  // Condition filter
+  if (filters.condition) {
     must.push({
-      multi_match: {
-        query: filters.query.trim(),
-        fields: ['title^2', 'description'],
-        type: 'best_fields',
-        fuzziness: 'AUTO',
+      nested: {
+        path: 'extraFields',
+        query: {
+          bool: {
+            must: [
+              { match: { 'extraFields.key': 'condition' } },
+              { match: { 'extraFields.value': filters.condition } },
+            ],
+          },
+        },
       },
     });
   }
 
+  // Dynamic filters
+  if (filters.dynamicFilters) {
+    Object.entries(filters.dynamicFilters).forEach(([key, value]) => {
+      if (value !== undefined && value !== '') {
+        must.push({
+          nested: {
+            path: 'extraFields',
+            query: {
+              bool: {
+                must: [
+                  { match: { 'extraFields.key': key } },
+                  { match: { 'extraFields.value': String(value) } },
+                ],
+              },
+            },
+          },
+        });
+      }
+    });
+  }
+
+  // Sort
   let sort: any[] = [
     { timestamp: { order: 'desc' } },
     { id: { order: 'desc' } },
   ];
   if (filters.sortBy === 'price_asc') {
-    sort = [{ price: { order: 'asc' } }];
+    sort = [{ price: { order: 'asc' } }, { id: { order: 'desc' } }];
   } else if (filters.sortBy === 'price_desc') {
-    sort = [{ price: { order: 'desc' } }];
+    sort = [{ price: { order: 'desc' } }, { id: { order: 'desc' } }];
   }
 
-  const queryBody: any = {
+  const queryBody = {
     from,
     size: PAGE_SIZE,
     track_total_hits: 200000,
@@ -81,13 +132,13 @@ const buildAdsQuery = (filters: Partial<FilterState>, from = 0) => {
 const mapHit = (hit: any): Ad => {
   const src = hit._source ?? {};
   return {
-    id: hit._id ?? String(Math.random()),
+    id: hit._id ?? `ad-${Date.now()}-${Math.random()}`,
     title: src.title ?? '',
     price: src.price ?? undefined,
     currency: src.currency ?? 'USD',
     images: Array.isArray(src.images)
       ? src.images.map((img: any) => ({
-          id: img.id ?? '',
+          id: img.id ?? String(Math.random()),
           url: img.url ?? '',
         }))
       : [],

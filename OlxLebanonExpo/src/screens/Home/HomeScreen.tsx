@@ -91,7 +91,7 @@ const FeaturedSection: React.FC<{
       ) : ads && ads.length > 0 ? (
         <FlatList
           data={ads}
-          keyExtractor={item => item.id}
+          keyExtractor={(item, index) => `${item.id}-${index}`}
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: Spacing.lg }}
