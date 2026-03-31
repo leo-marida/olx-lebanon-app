@@ -99,13 +99,15 @@ export const AdCard: React.FC<AdCardProps> = ({
     </TouchableOpacity>
   );
 
-  // ── GRID VARIANT ──────────────────────────────────────────────────────────
+// ── GRID VARIANT ──────────────────────────────────────────────────────────
   if (variant === 'grid') {
     return (
       <TouchableOpacity
         style={[styles.gridCard, { width: GRID_CARD_WIDTH }]}
         onPress={onPress}
         activeOpacity={0.88}>
+
+        {/* Image */}
         <View style={styles.gridImageContainer}>
           {imageUrl ? (
             <Image
@@ -119,26 +121,47 @@ export const AdCard: React.FC<AdCardProps> = ({
             </View>
           )}
           <HeartBtn style={styles.heartGrid} />
+          {ad.isElite && (
+            <View style={styles.gridEliteBadge}>
+              <Text style={styles.gridEliteBadgeText}>⭐</Text>
+            </View>
+          )}
         </View>
+
+        {/* Content */}
         <View style={styles.gridContent}>
-          <Text style={styles.price}>
+          {/* Price */}
+          <Text style={styles.price} numberOfLines={1}>
             {formatPrice(ad.price, ad.currency)}
           </Text>
+
+          {/* Title */}
           <Text style={styles.titleGrid} numberOfLines={2}>
             {ad.title}
           </Text>
+
+          {/* Info pills — year, km, rooms etc */}
           {infoItems.length > 0 && (
-            <Text style={styles.infoInline} numberOfLines={1}>
-              {infoItems
-                .slice(0, 2)
-                .map(i => `${i.icon} ${i.value}`)
-                .join('  ')}
-            </Text>
+            <View style={styles.gridInfoRow}>
+              {infoItems.slice(0, 2).map((item, i) => (
+                <View key={i} style={styles.gridInfoPill}>
+                  <Text style={styles.gridInfoPillText}>
+                    {item.icon} {item.value}
+                  </Text>
+                </View>
+              ))}
+            </View>
           )}
+
+          {/* Location */}
           <Text style={styles.locationText} numberOfLines={1}>
             📍 {ad.location.name}
           </Text>
-          <Text style={styles.timeText}>{formatTime(ad.timestamp)}</Text>
+
+          {/* Time */}
+          <Text style={styles.timeText}>
+            {formatTime(ad.timestamp)}
+          </Text>
         </View>
       </TouchableOpacity>
     );
@@ -251,7 +274,21 @@ const styles = StyleSheet.create({
   },
   gridImage: {
     width: '100%',
-    height: 130,
+    height: 120,
+  },
+  gridEliteBadge: {
+    position: 'absolute',
+    top: 6,
+    left: 6,
+    backgroundColor: Colors.elite,
+    borderRadius: 4,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+  },
+  gridEliteBadgeText: {
+    fontSize: 10,
+    color: Colors.white,
+    fontWeight: '700',
   },
   heartGrid: {
     position: 'absolute',
@@ -267,17 +304,36 @@ const styles = StyleSheet.create({
   },
   gridContent: {
     padding: Spacing.sm,
+    gap: 3,
   },
   titleGrid: {
-    fontSize: 13,
+    fontSize: 12,
     color: Colors.textPrimary,
-    lineHeight: 18,
+    lineHeight: 16,
     marginBottom: 3,
   },
-  infoInline: {
-    fontSize: 11,
+gridInfoRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 3,
+    marginVertical: 2,
+  },
+  gridInfoPill: {
+    backgroundColor: Colors.background,
+    borderRadius: 3,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  gridInfoPillText: {
+    fontSize: 9,
     color: Colors.textSecondary,
-    marginBottom: 3,
+    fontWeight: '500',
+  },
+  infoInline: {
+    fontSize: 10,
+    color: Colors.textSecondary,
   },
 
   // ── List ───────────────────────────────────────────────────────────────────
