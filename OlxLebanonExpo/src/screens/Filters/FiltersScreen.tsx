@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   TextInput,
   StyleSheet,
-  SafeAreaView,
   Modal,
   FlatList,
 } from 'react-native';
@@ -19,7 +18,7 @@ import { useCategories, useCategoryFields } from '../../hooks/useCategories';
 import { useLocations } from '../../hooks/useLocations';
 import { useAds } from '../../hooks/useAds';
 import { CategoryField } from '../../types/category';
-
+import { SafeAreaView } from 'react-native-safe-area-context';
 export const FiltersScreen: React.FC = () => {
   const { t, i18n } = useTranslation();
   const navigation = useNavigation<any>();
@@ -77,7 +76,7 @@ export const FiltersScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.closeBtn}>✕</Text>
         </TouchableOpacity>

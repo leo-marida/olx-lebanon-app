@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -17,11 +17,11 @@ import { AdCard } from '../../components/AdCard/AdCard';
 import { FilterChip } from '../../components/FilterChip/FilterChip';
 import { Skeleton } from '../../components/Skeleton/Skeleton';
 import { useAds } from '../../hooks/useAds';
-import { useLocations } from '../../hooks/useLocations';
 import { useFilterStore } from '../../store/useFilterStore';
 import { useDebouncedSearch } from '../../hooks/useDebouncedSearch';
 import { useCategories } from '../../hooks/useCategories';
 import { Ad } from '../../types/ad';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export const SearchResultsScreen: React.FC = () => {
   const { t } = useTranslation();
@@ -31,7 +31,6 @@ export const SearchResultsScreen: React.FC = () => {
 
   const filters = useFilterStore(s => s.filters);
   const setQuery = useFilterStore(s => s.setQuery);
-  const setLocationExternalID = useFilterStore(s => s.setLocationExternalID);
   const setSortBy = useFilterStore(s => s.setSortBy);
 
   const debouncedQuery = useDebouncedSearch(localQuery, 400);
@@ -40,20 +39,27 @@ export const SearchResultsScreen: React.FC = () => {
     setQuery(debouncedQuery);
   }, [debouncedQuery]);
 
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useAds(filters);
+  // ← FIX 6: added refetch and isRefetching here
+  const {
+    data,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    refetch,
+    isRefetching,
+  } = useAds(filters);
 
-  const { data: locations } = useLocations();
   const { data: categories } = useCategories();
 
-  const allAds: Ad[] = data?.pages.flatMap(p => p.hits) || [];
-  const totalCount = data?.pages[0]?.total || 0;
+  const allAds: Ad[] = data?.pages.flatMap(p => p.hits) ?? [];
+  const totalCount = data?.pages[0]?.total ?? 0;
 
   const eliteAds = allAds.filter(a => a.isElite);
   const regularAds = allAds.filter(a => !a.isElite);
 
   const categoryName =
-    categories?.find(c => c.externalID === filters.categoryExternalID)?.name ||
+    categories?.find(c => c.externalID === filters.categoryExternalID)?.name ??
     t('common.forSale');
 
   const renderSortModal = () => (
@@ -94,7 +100,6 @@ export const SearchResultsScreen: React.FC = () => {
 
   const renderHeader = () => (
     <>
-      {/* Filter chips row */}
       <View style={styles.chipsRow}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <FilterChip
@@ -114,7 +119,6 @@ export const SearchResultsScreen: React.FC = () => {
         </ScrollView>
       </View>
 
-      {/* Result count + sort */}
       <View style={styles.resultsRow}>
         <Text style={styles.resultsCount}>
           {t('search.showing', {
@@ -129,7 +133,6 @@ export const SearchResultsScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Elite ads section */}
       {eliteAds.length > 0 && (
         <View style={styles.eliteSection}>
           <View style={styles.eliteSectionHeader}>
@@ -182,6 +185,9 @@ export const SearchResultsScreen: React.FC = () => {
               <Text style={styles.emptyText}>{t('common.noResults')}</Text>
             </View>
           )}
+          // ← FIX 6: these two lines are the pull-to-refresh
+          refreshing={isRefetching}
+          onRefresh={refetch}
           onEndReached={() => {
             if (hasNextPage && !isFetchingNextPage) fetchNextPage();
           }}
@@ -203,10 +209,7 @@ export const SearchResultsScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
+  container: { flex: 1, backgroundColor: Colors.background },
   chipsRow: {
     backgroundColor: Colors.surface,
     paddingVertical: Spacing.sm,
@@ -221,22 +224,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
   },
-  resultsCount: {
-    ...Typography.caption,
-    color: Colors.textSecondary,
-  },
-  sortBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  sortBtnText: {
-    fontSize: 13,
-    color: Colors.primary,
-    fontWeight: '500',
-  },
-  eliteSection: {
-    marginBottom: Spacing.sm,
-  },
+  resultsCount: { ...Typography.caption, color: Colors.textSecondary },
+  sortBtn: { flexDirection: 'row', alignItems: 'center' },
+  sortBtnText: { fontSize: 13, color: Colors.primary, fontWeight: '500' },
+  eliteSection: { marginBottom: Spacing.sm },
   eliteSectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -248,18 +239,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: Colors.elite,
   },
-  eliteSectionTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#B8860B',
-  },
-  viewMore: {
-    fontSize: 13,
-    color: Colors.primary,
-  },
-  skeletonContainer: {
-    padding: Spacing.lg,
-  },
+  eliteSectionTitle: { fontSize: 13, fontWeight: '700', color: '#B8860B' },
+  viewMore: { fontSize: 13, color: Colors.primary },
+  skeletonContainer: { padding: Spacing.lg },
   skeletonCard: {
     flexDirection: 'row',
     backgroundColor: Colors.surface,
@@ -267,14 +249,8 @@ const styles = StyleSheet.create({
     padding: Spacing.sm,
     marginBottom: Spacing.sm,
   },
-  empty: {
-    alignItems: 'center',
-    paddingTop: Spacing.xxl * 2,
-  },
-  emptyText: {
-    ...Typography.body,
-    color: Colors.textTertiary,
-  },
+  empty: { alignItems: 'center', paddingTop: Spacing.xxl * 2 },
+  emptyText: { ...Typography.body, color: Colors.textTertiary },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.4)',
@@ -286,11 +262,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 16,
     padding: Spacing.xl,
   },
-  sortTitle: {
-    ...Typography.h3,
-    color: Colors.textPrimary,
-    marginBottom: Spacing.lg,
-  },
+  sortTitle: { ...Typography.h3, color: Colors.textPrimary, marginBottom: Spacing.lg },
   sortOption: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -298,16 +270,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
-  sortOptionText: {
-    ...Typography.body,
-    color: Colors.textPrimary,
-  },
-  sortOptionActive: {
-    color: Colors.primary,
-    fontWeight: '600',
-  },
-  checkmark: {
-    color: Colors.primary,
-    fontWeight: '700',
-  },
+  sortOptionText: { ...Typography.body, color: Colors.textPrimary },
+  sortOptionActive: { color: Colors.primary, fontWeight: '600' },
+  checkmark: { color: Colors.primary, fontWeight: '700' },
 });
