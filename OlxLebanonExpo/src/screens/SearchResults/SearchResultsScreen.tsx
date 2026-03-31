@@ -152,7 +152,7 @@ export const SearchResultsScreen: React.FC = () => {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <SearchBar
         value={localQuery}
         onChangeText={setLocalQuery}
@@ -204,7 +204,7 @@ export const SearchResultsScreen: React.FC = () => {
       )}
 
       {renderSortModal()}
-    </View>
+    </SafeAreaView>
   );
 };
 

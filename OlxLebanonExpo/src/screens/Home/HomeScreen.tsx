@@ -148,7 +148,7 @@ export const HomeScreen: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       {/* Header */}
       <View style={[styles.header]}>
         <View style={styles.headerTop}>
@@ -272,7 +272,7 @@ export const HomeScreen: React.FC = () => {
           />
         ))}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 

@@ -9,6 +9,10 @@ export const msearchRequest = async (body: string): Promise<any> => {
       'Accept': 'application/json',
       'Origin': 'https://www.olx.com.lb',
       'Referer': 'https://www.olx.com.lb/',
+      'x-requested-with': 'XMLHttpRequest',
+      'sec-fetch-site': 'cross-site',
+      'sec-fetch-mode': 'cors',
+      'sec-fetch-dest': 'empty',
     },
     body,
   });
@@ -26,6 +30,7 @@ export const olxApiRequest = async (path: string): Promise<any> => {
     headers: {
       'Accept': 'application/json',
       'Origin': 'https://www.olx.com.lb',
+      'Referer': 'https://www.olx.com.lb/',
     },
   });
 
