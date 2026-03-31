@@ -1,0 +1,54 @@
+{
+  "common": {
+    "search": "ماذا تبحث عن؟",
+    "seeAll": "عرض الكل",
+    "sortBy": "ترتيب حسب",
+    "filters": "الفلاتر",
+    "apply": "تطبيق",
+    "clearAll": "مسح الكل",
+    "cancel": "إلغاء",
+    "results": "{{count}} نتيجة",
+    "noResults": "لا توجد نتائج",
+    "loading": "جار التحميل...",
+    "call": "اتصال",
+    "chat": "دردشة",
+    "save": "حفظ",
+    "any": "الكل",
+    "new": "جديد",
+    "used": "مستعمل",
+    "available": "متاح",
+    "forSale": "للبيع"
+  },
+  "home": {
+    "location": "لبنان",
+    "browseCategories": "تصفح الفئات",
+    "featuredAds": "الإعلانات المميزة",
+    "carsForSale": "سيارات للبيع",
+    "internationalProperties": "عقارات دولية",
+    "mobilePhones": "الهواتف المحمولة"
+  },
+  "search": {
+    "showing": "{{count}} نتيجة لـ {{category}}",
+    "eliteAds": "إعلانات مميزة",
+    "viewMore": "عرض المزيد",
+    "sortNewest": "الأحدث",
+    "sortPriceAsc": "السعر: الأقل أولاً",
+    "sortPriceDesc": "السعر: الأعلى أولاً"
+  },
+  "filters": {
+    "title": "الفلاتر",
+    "category": "الفئة",
+    "location": "الموقع",
+    "highlights": "المميزات",
+    "brand": "الماركة",
+    "paymentOptions": "خيارات الدفع",
+    "price": "السعر",
+    "condition": "الحالة",
+    "kilometers": "الكيلومترات",
+    "color": "اللون",
+    "change": "تغيير",
+    "seeResults": "عرض {{count}} نتيجة",
+    "min": "أدنى",
+    "max": "أقصى"
+  }
+}

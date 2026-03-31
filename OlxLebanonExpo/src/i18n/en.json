@@ -1,0 +1,54 @@
+{
+  "common": {
+    "search": "What are you looking for?",
+    "seeAll": "See all",
+    "sortBy": "Sort by",
+    "filters": "Filters",
+    "apply": "Apply",
+    "clearAll": "Clear all",
+    "cancel": "Cancel",
+    "results": "{{count}} Results",
+    "noResults": "No results found",
+    "loading": "Loading...",
+    "call": "Call",
+    "chat": "Chat",
+    "save": "Save",
+    "any": "Any",
+    "new": "New",
+    "used": "Used",
+    "available": "Available",
+    "forSale": "For Sale"
+  },
+  "home": {
+    "location": "Lebanon",
+    "browseCategories": "Browse Categories",
+    "featuredAds": "Featured Ads",
+    "carsForSale": "Cars for Sale",
+    "internationalProperties": "International Properties",
+    "mobilePhones": "Mobile Phones"
+  },
+  "search": {
+    "showing": "Showing {{count}} Results for {{category}}",
+    "eliteAds": "Elite Ads",
+    "viewMore": "View more",
+    "sortNewest": "Newest",
+    "sortPriceAsc": "Price: Low to High",
+    "sortPriceDesc": "Price: High to Low"
+  },
+  "filters": {
+    "title": "Filters",
+    "category": "Category",
+    "location": "Location",
+    "highlights": "Highlights",
+    "brand": "Brand",
+    "paymentOptions": "Payment Options",
+    "price": "Price",
+    "condition": "Condition",
+    "kilometers": "Kilometers",
+    "color": "Color",
+    "change": "Change",
+    "seeResults": "See {{count}} Results",
+    "min": "Min",
+    "max": "Max"
+  }
+}
