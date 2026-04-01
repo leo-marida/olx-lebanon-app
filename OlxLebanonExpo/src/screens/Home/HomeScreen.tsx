@@ -29,9 +29,9 @@ const BANNERS = [
 ];
 
 const FEATURED_SECTIONS = [
-  { labelKey: 'home.carsForSale', categoryID: '23' },
-  { labelKey: 'home.mobilePhones', categoryID: '198' },
-  { labelKey: 'home.internationalProperties', categoryID: '2' },
+  { labelKey: 'home.carsForSale', categoryID: '129' },
+  { labelKey: 'home.mobilePhones', categoryID: '147' },
+  { labelKey: 'home.internationalProperties', categoryID: '138' },
 ];
 
 const getCategoryEmoji = (name: string): string => {
@@ -114,14 +114,23 @@ export const HomeScreen: React.FC = () => {
   const setCategoryExternalID = useFilterStore(s => s.setCategoryExternalID);
   const resetFilters = useFilterStore(s => s.resetFilters);
   const setLanguage = useAppStore(s => s.setLanguage);
+  // Add inside HomeScreen component temporarily
 
   const { data: categories, isLoading: loadingCats } = useCategories();
+  React.useEffect(() => {
+  if (categories) {
+    console.log('ALL CATEGORIES:', JSON.stringify(
+      categories.map(c => ({ id: c.id, externalID: c.externalID, name: c.name, parentID: c.parentID }))
+    ));
+  }
+}, [categories]);
   const topLevelCategories =
     categories?.filter(c => !c.parentID).slice(0, 8) ?? [];
 
   const bannerRef = useRef<FlatList>(null);
   const [activeBanner, setActiveBanner] = useState(0);
 
+  
   useEffect(() => {
     const timer = setInterval(() => {
       const next = (activeBanner + 1) % BANNERS.length;
@@ -147,6 +156,7 @@ export const HomeScreen: React.FC = () => {
     setLanguage(next);
   };
 
+  
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       {/* Header */}

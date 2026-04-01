@@ -5,7 +5,7 @@ import { FilterState } from "../types/filter";
 const PAGE_SIZE = 12;
 
 const CATEGORY_SYNONYMS: Record<string, string[]> = {
-  "23": [
+  "129": [
     "car",
     "cars",
     "vehicle",
@@ -15,7 +15,7 @@ const CATEGORY_SYNONYMS: Record<string, string[]> = {
     "سيارات",
     "automobile",
   ],
-  "198": [
+  "147": [
     "phone",
     "phones",
     "mobile",
@@ -26,7 +26,7 @@ const CATEGORY_SYNONYMS: Record<string, string[]> = {
     "موبايل",
     "جوال",
   ],
-  "2": [
+  "138": [
     "apartment",
     "apartments",
     "villa",
@@ -39,10 +39,10 @@ const CATEGORY_SYNONYMS: Record<string, string[]> = {
     "عقار",
     "بيت",
   ],
-  "96": ["laptop", "computer", "pc", "لابتوب", "كمبيوتر"],
-  "3": ["furniture", "sofa", "chair", "table", "أثاث", "كنبة"],
-  "4": ["fashion", "clothes", "clothing", "shoes", "ملابس", "أزياء"],
-  "7": ["job", "jobs", "work", "hiring", "وظيفة", "عمل", "توظيف"],
+  "20": ["laptop", "computer", "pc", "لابتوب", "كمبيوتر"],
+  "6": ["furniture", "sofa", "chair", "table", "أثاث", "كنبة"],
+  "206": ["fashion", "clothes", "clothing", "shoes", "ملابس", "أزياء"],
+  "100": ["job", "jobs", "work", "hiring", "وظيفة", "عمل", "توظيف"],
 };
 
 const findMatchingCategoryIDs = (query: string): string[] => {
