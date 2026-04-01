@@ -35,7 +35,14 @@ export const useFilterStore = create<FilterStore>(set => ({
   setLocationExternalID: id =>
     set(s => ({ filters: { ...s.filters, locationExternalID: id, page: 0 } })),
   setPriceRange: (min, max) =>
-    set(s => ({ filters: { ...s.filters, priceMin: min, priceMax: max, page: 0 } })),
+  set(s => ({
+    filters: {
+      ...s.filters,
+      priceMin: min,
+      priceMax: max,
+      page: 0,
+    },
+  })),
   setCondition: condition =>
     set(s => ({ filters: { ...s.filters, condition, page: 0 } })),
   setDynamicFilter: (key, value) =>

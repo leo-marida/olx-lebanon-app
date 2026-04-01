@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   View,
   Text,
@@ -8,30 +8,30 @@ import {
   Dimensions,
   Linking,
   Alert,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { Ad } from '../../types/ad';
-import { Colors, Spacing, Typography } from '../../theme';
-import { useTranslation } from 'react-i18next';
-import { useAppStore } from '../../store/useAppStore';
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { Ad } from "../../types/ad";
+import { Colors, Spacing, Typography } from "../../theme";
+import { useTranslation } from "react-i18next";
+import { useAppStore } from "../../store/useAppStore";
 
 interface AdCardProps {
   ad: Ad;
   onPress?: () => void;
-  variant?: 'grid' | 'list';
+  variant?: "grid" | "list";
 }
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const GRID_CARD_WIDTH = (SCREEN_WIDTH - Spacing.lg * 2 - Spacing.sm) / 2;
 const LIST_IMAGE_WIDTH = SCREEN_WIDTH - Spacing.lg * 2;
 
 const formatPrice = (price?: number, currency?: string) => {
-  if (!price) return 'Contact for price';
-  return `${currency ?? 'USD'} ${price.toLocaleString()}`;
+  if (!price) return "Contact for price";
+  return `${currency ?? "USD"} ${price.toLocaleString()}`;
 };
 
 const formatTime = (timestamp: number) => {
-  if (!timestamp) return '';
+  if (!timestamp) return "";
   const diff = Date.now() / 1000 - timestamp;
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
@@ -42,46 +42,44 @@ const formatTime = (timestamp: number) => {
 export const AdCard: React.FC<AdCardProps> = ({
   ad,
   onPress,
-  variant = 'grid',
+  variant = "grid",
 }) => {
   const { t } = useTranslation();
   const navigation = useNavigation<any>();
-  const saveAd = useAppStore(s => s.saveAd);
-  const unsaveAd = useAppStore(s => s.unsaveAd);
-  const isAdSaved = useAppStore(s => s.isAdSaved);
+  const saveAd = useAppStore((s) => s.saveAd);
+  const unsaveAd = useAppStore((s) => s.unsaveAd);
+  const isAdSaved = useAppStore((s) => s.isAdSaved);
   const saved = isAdSaved(ad.id);
 
-  const imageUrl = ad.images?.[0]?.url ?? '';
+  const imageUrl = ad.images?.[0]?.url ?? "";
   const ef = ad.extraFields ?? {};
 
   // Extra info row — year, fuel, km, rooms, etc.
   const infoItems: { icon: string; value: string }[] = [];
-  if (ef.year) infoItems.push({ icon: '📅', value: String(ef.year) });
-  if (ef.fuel) infoItems.push({ icon: '⛽', value: String(ef.fuel) });
+  if (ef.year) infoItems.push({ icon: "📅", value: String(ef.year) });
+  if (ef.fuel) infoItems.push({ icon: "⛽", value: String(ef.fuel) });
   if (ef.kilometers)
     infoItems.push({
-      icon: '🛣️',
+      icon: "🛣️",
       value: `${Number(ef.kilometers).toLocaleString()} km`,
     });
-  if (ef.rooms) infoItems.push({ icon: '🛏️', value: `${ef.rooms} bd` });
-  if (ef.bathrooms)
-    infoItems.push({ icon: '🚿', value: `${ef.bathrooms} ba` });
-  if (ef.size) infoItems.push({ icon: '📐', value: `${ef.size} m²` });
-  if (ef.brand) infoItems.push({ icon: '🏷️', value: String(ef.brand) });
-  if (ef.condition)
-    infoItems.push({ icon: '✨', value: String(ef.condition) });
+  if (ef.rooms) infoItems.push({ icon: "🛏️", value: `${ef.rooms} bd` });
+  if (ef.bathrooms) infoItems.push({ icon: "🚿", value: `${ef.bathrooms} ba` });
+  if (ef.size) infoItems.push({ icon: "📐", value: `${ef.size} m²` });
+  if (ef.brand) infoItems.push({ icon: "🏷️", value: String(ef.brand) });
+  if (ef.condition) infoItems.push({ icon: "✨", value: String(ef.condition) });
 
   const handleCall = () => {
     const phone = ef.phone as string;
     if (phone) {
       Linking.openURL(`tel:${phone}`);
     } else {
-      Alert.alert('Contact', 'Phone number not available.');
+      Alert.alert("Contact", "Phone number not available.");
     }
   };
 
   const handleChat = () => {
-    navigation.navigate('Home', { screen: 'ChatsTab' });
+    navigation.navigate("Home", { screen: "ChatsTab" });
   };
 
   const handleSave = () => {
@@ -92,26 +90,33 @@ export const AdCard: React.FC<AdCardProps> = ({
     <TouchableOpacity
       style={style}
       onPress={handleSave}
-      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+    >
       <Text style={[styles.heartIcon, saved && styles.heartSaved]}>
-        {saved ? '♥' : '♡'}
+        {saved ? "♥" : "♡"}
       </Text>
     </TouchableOpacity>
   );
 
-// ── GRID VARIANT ──────────────────────────────────────────────────────────
-  if (variant === 'grid') {
+  // ── GRID VARIANT ──────────────────────────────────────────────────────────
+  if (variant === "grid") {
     return (
       <TouchableOpacity
         style={[styles.gridCard, { width: GRID_CARD_WIDTH }]}
         onPress={onPress}
-        activeOpacity={0.88}>
-
+        activeOpacity={0.88}
+      >
         {/* Image */}
         <View style={styles.gridImageContainer}>
           {imageUrl ? (
+            // Grid image:
             <Image
-              source={{ uri: imageUrl }}
+              source={{
+                uri: imageUrl,
+                headers: {
+                  Referer: "https://www.olx.com.lb/",
+                },
+              }}
               style={styles.gridImage}
               resizeMode="cover"
             />
@@ -159,9 +164,7 @@ export const AdCard: React.FC<AdCardProps> = ({
           </Text>
 
           {/* Time */}
-          <Text style={styles.timeText}>
-            {formatTime(ad.timestamp)}
-          </Text>
+          <Text style={styles.timeText}>{formatTime(ad.timestamp)}</Text>
         </View>
       </TouchableOpacity>
     );
@@ -172,8 +175,8 @@ export const AdCard: React.FC<AdCardProps> = ({
     <TouchableOpacity
       style={[styles.listCard, ad.isElite && styles.eliteCard]}
       onPress={onPress}
-      activeOpacity={0.88}>
-
+      activeOpacity={0.88}
+    >
       {/* Elite badge */}
       {ad.isElite && (
         <View style={styles.eliteHeader}>
@@ -184,8 +187,14 @@ export const AdCard: React.FC<AdCardProps> = ({
       {/* Full width image on top */}
       <View style={styles.listImageContainer}>
         {imageUrl ? (
+          // List image:
           <Image
-            source={{ uri: imageUrl }}
+            source={{
+              uri: imageUrl,
+              headers: {
+                Referer: "https://www.olx.com.lb/",
+              },
+            }}
             style={styles.listImage}
             resizeMode="cover"
           />
@@ -206,9 +215,7 @@ export const AdCard: React.FC<AdCardProps> = ({
       {/* Card content below image */}
       <View style={styles.listContent}>
         {/* Price */}
-        <Text style={styles.price}>
-          {formatPrice(ad.price, ad.currency)}
-        </Text>
+        <Text style={styles.price}>{formatPrice(ad.price, ad.currency)}</Text>
 
         {/* Title */}
         <Text style={styles.titleList} numberOfLines={2}>
@@ -241,14 +248,16 @@ export const AdCard: React.FC<AdCardProps> = ({
           <TouchableOpacity
             style={styles.chatBtn}
             onPress={handleChat}
-            activeOpacity={0.75}>
-            <Text style={styles.chatBtnText}>💬 {t('common.chat')}</Text>
+            activeOpacity={0.75}
+          >
+            <Text style={styles.chatBtnText}>💬 {t("common.chat")}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.callBtn}
             onPress={handleCall}
-            activeOpacity={0.75}>
-            <Text style={styles.callBtnText}>📞 {t('common.call')}</Text>
+            activeOpacity={0.75}
+          >
+            <Text style={styles.callBtnText}>📞 {t("common.call")}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -261,23 +270,23 @@ const styles = StyleSheet.create({
   gridCard: {
     backgroundColor: Colors.surface,
     borderRadius: 8,
-    overflow: 'hidden',
+    overflow: "hidden",
     marginBottom: Spacing.sm,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOpacity: 0.07,
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
   },
   gridImageContainer: {
-    position: 'relative',
+    position: "relative",
   },
   gridImage: {
-    width: '100%',
+    width: "100%",
     height: 120,
   },
   gridEliteBadge: {
-    position: 'absolute',
+    position: "absolute",
     top: 6,
     left: 6,
     backgroundColor: Colors.elite,
@@ -288,18 +297,18 @@ const styles = StyleSheet.create({
   gridEliteBadgeText: {
     fontSize: 10,
     color: Colors.white,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   heartGrid: {
-    position: 'absolute',
+    position: "absolute",
     top: 8,
     right: 8,
-    backgroundColor: 'rgba(255,255,255,0.92)',
+    backgroundColor: "rgba(255,255,255,0.92)",
     borderRadius: 14,
     width: 28,
     height: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     elevation: 3,
   },
   gridContent: {
@@ -312,9 +321,9 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     marginBottom: 3,
   },
-gridInfoRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+  gridInfoRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 3,
     marginVertical: 2,
   },
@@ -329,7 +338,7 @@ gridInfoRow: {
   gridInfoPillText: {
     fontSize: 9,
     color: Colors.textSecondary,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   infoInline: {
     fontSize: 10,
@@ -340,11 +349,11 @@ gridInfoRow: {
   listCard: {
     backgroundColor: Colors.surface,
     borderRadius: 10,
-    overflow: 'hidden',
+    overflow: "hidden",
     marginHorizontal: Spacing.lg,
     marginBottom: Spacing.sm,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOpacity: 0.07,
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
@@ -362,35 +371,35 @@ gridInfoRow: {
   },
   eliteHeaderText: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#B8860B',
+    fontWeight: "700",
+    color: "#B8860B",
   },
   listImageContainer: {
-    position: 'relative',
-    width: '100%',
+    position: "relative",
+    width: "100%",
   },
   listImage: {
-    width: '100%',
+    width: "100%",
     height: 200,
   },
   heartList: {
-    position: 'absolute',
+    position: "absolute",
     top: 10,
     right: 10,
-    backgroundColor: 'rgba(255,255,255,0.92)',
+    backgroundColor: "rgba(255,255,255,0.92)",
     borderRadius: 16,
     width: 32,
     height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     elevation: 4,
     zIndex: 3,
   },
   imgCountBadge: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 8,
     left: 8,
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    backgroundColor: "rgba(0,0,0,0.55)",
     borderRadius: 4,
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -398,7 +407,7 @@ gridInfoRow: {
   imgCountText: {
     color: Colors.white,
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   listContent: {
     padding: Spacing.md,
@@ -410,8 +419,8 @@ gridInfoRow: {
     marginBottom: 6,
   },
   infoRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 6,
     marginBottom: 8,
   },
@@ -426,16 +435,16 @@ gridInfoRow: {
   infoPillText: {
     fontSize: 11,
     color: Colors.textSecondary,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   metaRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 10,
   },
   actions: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
   },
   chatBtn: {
@@ -444,31 +453,31 @@ gridInfoRow: {
     borderColor: Colors.primary,
     borderRadius: 8,
     paddingVertical: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   chatBtnText: {
     color: Colors.primary,
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   callBtn: {
     flex: 1,
     backgroundColor: Colors.primary,
     borderRadius: 8,
     paddingVertical: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   callBtnText: {
     color: Colors.white,
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 
   // ── Shared ─────────────────────────────────────────────────────────────────
   noImageBox: {
     backgroundColor: Colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   noImageIcon: {
     fontSize: 32,
@@ -483,11 +492,11 @@ gridInfoRow: {
     color: Colors.textTertiary,
   },
   heartSaved: {
-    color: '#E03C31',
+    color: "#E03C31",
   },
   price: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
     color: Colors.primary,
     marginBottom: 4,
   },

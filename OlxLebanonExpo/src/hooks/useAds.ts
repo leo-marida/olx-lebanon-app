@@ -4,15 +4,16 @@ import { FilterState } from '../types/filter';
 
 export const useAds = (filters: Partial<FilterState>) => {
   return useInfiniteQuery({
-    queryKey: ['ads',
-      filters.query,
-      filters.categoryExternalID,
-      filters.locationExternalID,
-      filters.priceMin,
-      filters.priceMax,
-      filters.condition,
-      filters.sortBy,
-      JSON.stringify(filters.dynamicFilters),
+    queryKey: [
+      'ads',
+      filters.query ?? '',
+      filters.categoryExternalID ?? '',
+      filters.locationExternalID ?? '',
+      filters.priceMin ?? 0,
+      filters.priceMax ?? 0,
+      filters.condition ?? '',
+      filters.sortBy ?? 'timestamp',
+      JSON.stringify(filters.dynamicFilters ?? {}),
     ],
     queryFn: ({ pageParam = 0 }) => fetchAds(filters, pageParam as number),
     getNextPageParam: (lastPage, allPages) => {
