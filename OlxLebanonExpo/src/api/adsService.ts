@@ -162,7 +162,7 @@ const buildAdsQuery = (filters: Partial<FilterState>, from = 0) => {
     `${JSON.stringify({ index: "olx-lb-production-ads-en" })}\n` +
     `${JSON.stringify(queryBody)}\n`;
 
-  console.log("SENDING QUERY:", JSON.stringify(queryBody).slice(0, 600));
+  //console.log("SENDING QUERY:", JSON.stringify(queryBody).slice(0, 600));
 
   return ndjson;
   // return `${JSON.stringify({ index: "olx-lb-production-ads-en" })}\n${JSON.stringify(
@@ -176,9 +176,14 @@ const buildAdsQuery = (filters: Partial<FilterState>, from = 0) => {
   // )}\n`;
 };
 
-const buildImageUrl = (externalID: string): string => {
-  if (!externalID) return "";
-  return `https://images.olx.com.lb/thumbnails/${externalID}/800x600.webp`;
+const buildImageUrl = (id: number, externalID: string): string => {
+  if (id) {
+    return `https://images.olx.com.lb/thumbnails/${id}-800x600.webp`;
+  }
+  if (externalID) {
+    return `https://images.olx.com.lb/thumbnails/${externalID}-800x600.webp`;
+  }
+  return '';
 };
 
 const mapHit = (hit: any): Ad => {
@@ -191,16 +196,16 @@ const mapHit = (hit: any): Ad => {
         .sort((a: any, b: any) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0))
         .map((p: any) => ({
           id: String(p.id ?? Math.random()),
-          url: buildImageUrl(p.externalID ?? ""),
+          url: buildImageUrl(p.id, p.externalID ?? ""),
         }))
-        .filter((img: any) => img.url !== "")
+        .filter((img: any) => img.url !== '')
     : [];
 
   // Fallback to coverPhoto
-  if (images.length === 0 && src.coverPhoto?.externalID) {
+  if (images.length === 0 && src.coverPhoto) {
     images.push({
-      id: String(src.coverPhoto.id ?? "cover"),
-      url: buildImageUrl(src.coverPhoto.externalID),
+      id: String(src.coverPhoto.id ?? 'cover'),
+      url: buildImageUrl(src.coverPhoto.id, src.coverPhoto.externalID ?? ''),
     });
   }
 
@@ -214,13 +219,13 @@ const mapHit = (hit: any): Ad => {
   }
   if (extraFields.petrol) mappedExtraFields.fuel = extraFields.petrol;
   if (extraFields.make) mappedExtraFields.brand = extraFields.make;
-  console.log("AD PRICE:", src.price, "TITLE:", src.title?.slice(0, 30));
-  console.log(
-    "EXTRA FIELDS FULL:",
-    JSON.stringify(src.extraFields).slice(0, 400),
-  );
-  console.log("PRODUCT INFO:", JSON.stringify(src.productInfo).slice(0, 200));
-  console.log("CONTACT INFO:", JSON.stringify(src.contactInfo).slice(0, 200));
+//  console.log("AD PRICE:", src.price, "TITLE:", src.title?.slice(0, 30));
+  // console.log(
+  //   "EXTRA FIELDS FULL:",
+  //   JSON.stringify(src.extraFields).slice(0, 400),
+  // );
+  // console.log("PRODUCT INFO:", JSON.stringify(src.productInfo).slice(0, 200));
+  // console.log("CONTACT INFO:", JSON.stringify(src.contactInfo).slice(0, 200));
   return {
     id: hit._id ?? `ad-${Math.random()}`,
     title: src.title ?? "",
@@ -253,7 +258,7 @@ export const fetchAds = async (
   const hits = response?.hits?.hits ?? [];
   const total = response?.hits?.total?.value ?? 0;
 
-  console.log("SEARCH RESPONSE total:", total, "hits:", hits.length);
+//  console.log("SEARCH RESPONSE total:", total, "hits:", hits.length);
   if (hits.length > 0) {
     console.log("FIRST HIT TITLE:", hits[0]._source?.title);
   }

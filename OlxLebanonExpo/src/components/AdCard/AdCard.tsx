@@ -112,10 +112,7 @@ export const AdCard: React.FC<AdCardProps> = ({
             // Grid image:
             <Image
               source={{
-                uri: imageUrl,
-                headers: {
-                  Referer: "https://www.olx.com.lb/",
-                },
+                uri: imageUrl
               }}
               style={styles.gridImage}
               resizeMode="cover"
@@ -190,10 +187,7 @@ export const AdCard: React.FC<AdCardProps> = ({
           // List image:
           <Image
             source={{
-              uri: imageUrl,
-              headers: {
-                Referer: "https://www.olx.com.lb/",
-              },
+              uri: imageUrl
             }}
             style={styles.listImage}
             resizeMode="cover"
