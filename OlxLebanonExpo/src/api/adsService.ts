@@ -4,17 +4,23 @@ import { FilterState } from '../types/filter';
 
 const PAGE_SIZE = 12;
 
+// Build OLX image URL from photo externalID
+const buildImageUrl = (externalID: string): string => {
+  if (!externalID) return '';
+  return `https://apollo-ireland.akamaized.net/v1/files/${externalID}/image;s=761x1000`;
+};
+
 const buildAdsQuery = (filters: Partial<FilterState>, from = 0) => {
   const must: any[] = [];
 
-  // Category filter
+  // Category
   if (filters.categoryExternalID && filters.categoryExternalID !== '') {
     must.push({
       term: { 'category.externalID': filters.categoryExternalID },
     });
   }
 
-  // Location filter
+  // Location
   if (
     filters.locationExternalID &&
     filters.locationExternalID !== '' &&
@@ -25,96 +31,93 @@ const buildAdsQuery = (filters: Partial<FilterState>, from = 0) => {
     });
   }
 
-  // Text search
-if (filters.query && filters.query.trim() !== '') {
-  must.push({
-    bool: {
-      should: [
-        {
-          multi_match: {
-            query: filters.query.trim(),
-            fields: ['title^3', 'description^1'],
-            type: 'best_fields',
-            fuzziness: 'AUTO',
-          },
-        },
-        {
-          multi_match: {
-            query: filters.query.trim(),
-            fields: ['title^3', 'description^1'],
-            type: 'phrase_prefix',
-          },
-        },
-      ],
-      minimum_should_match: 1,
-    },
-  });
-}
+  // Price range — field is 'price' directly on source
+  if (
+    (filters.priceMin !== undefined && filters.priceMin > 0) ||
+    (filters.priceMax !== undefined && filters.priceMax > 0)
+  ) {
+    const priceFilter: any = {};
+    if (filters.priceMin !== undefined && filters.priceMin > 0) {
+      priceFilter.gte = filters.priceMin;
+    }
+    if (filters.priceMax !== undefined && filters.priceMax > 0) {
+      priceFilter.lte = filters.priceMax;
+    }
+    must.push({ range: { price: priceFilter } });
+  }
 
-  // Price range — use 'price' field directly
-const priceMin = filters.priceMin;
-const priceMax = filters.priceMax;
-if (
-  (priceMin !== undefined && priceMin > 0) ||
-  (priceMax !== undefined && priceMax > 0)
-) {
-  const priceFilter: any = {};
-  if (priceMin !== undefined && priceMin > 0) priceFilter.gte = priceMin;
-  if (priceMax !== undefined && priceMax > 0) priceFilter.lte = priceMax;
-  must.push({
-    range: {
-      price: priceFilter,
-    },
-  });
-}
-
-  // Condition filter
+  // Condition — actual field is 'new_used' in extraFields
+  // 1 = new, 2 = used based on OLX data
   if (filters.condition) {
+    const conditionValue = filters.condition === 'new' ? '1' : '2';
     must.push({
-      nested: {
-        path: 'extraFields',
-        query: {
-          bool: {
-            must: [
-              { match: { 'extraFields.key': 'condition' } },
-              { match: { 'extraFields.value': filters.condition } },
-            ],
-          },
-        },
-      },
+      term: { 'extraFields.new_used': conditionValue },
     });
   }
 
-  // Dynamic filters
+  // Dynamic filters from categoryFields API
   if (filters.dynamicFilters) {
     Object.entries(filters.dynamicFilters).forEach(([key, value]) => {
-      if (value !== undefined && value !== '') {
+      if (value !== undefined && value !== '' && key !== 'highlighted') {
         must.push({
-          nested: {
-            path: 'extraFields',
-            query: {
-              bool: {
-                must: [
-                  { match: { 'extraFields.key': key } },
-                  { match: { 'extraFields.value': String(value) } },
-                ],
-              },
-            },
-          },
+          term: { [`extraFields.${key}`]: String(value) },
         });
       }
     });
   }
 
+  // Text search — searches title and title_l1 (Arabic)
+  const q = filters.query?.trim();
+  if (q && q !== '') {
+    must.push({
+      bool: {
+        should: [
+          {
+            match_phrase_prefix: {
+              title: { query: q, boost: 5 },
+            },
+          },
+          {
+            match_phrase_prefix: {
+              title_l1: { query: q, boost: 5 },
+            },
+          },
+          {
+            match: {
+              title: { query: q, fuzziness: 'AUTO', boost: 3 },
+            },
+          },
+          {
+            match: {
+              title_l1: { query: q, fuzziness: 'AUTO', boost: 3 },
+            },
+          },
+          {
+            match: {
+              description: { query: q, fuzziness: 'AUTO', boost: 1 },
+            },
+          },
+          {
+            match: {
+              description_l1: { query: q, fuzziness: 'AUTO', boost: 1 },
+            },
+          },
+        ],
+        minimum_should_match: 1,
+      },
+    });
+  }
+
   // Sort
-  let sort: any[] = [
-    { timestamp: { order: 'desc' } },
-    { id: { order: 'desc' } },
-  ];
-  if (filters.sortBy === 'price_asc') {
-    sort = [{ price: { order: 'asc' } }, { id: { order: 'desc' } }];
+  let sort: any[];
+  if (q && q !== '') {
+    sort = [{ _score: { order: 'desc' } }, { timestamp: { order: 'desc' } }];
+  } else if (filters.sortBy === 'price_asc') {
+    sort = [{ price: { order: 'asc' } }];
   } else if (filters.sortBy === 'price_desc') {
-    sort = [{ price: { order: 'desc' } }, { id: { order: 'desc' } }];
+    sort = [{ price: { order: 'desc' } }];
+  } else {
+    sort = [{ timestamp: { order: 'desc' } }, { id: { order: 'desc' } }];
   }
 
   const queryBody = {
@@ -134,24 +137,57 @@ if (
   return `${header}\n${body}\n`;
 };
 
-const getImageUrl = (url?: string): string => {
-  if (!url) return '';
-  if (url.startsWith('http://')) return url.replace('http://', 'https://');
-  if (url.startsWith('https://')) return url;
-  if (url.startsWith('//')) return `https:${url}`;
-  return `https://www.olx.com.lb${url}`;
-};
-
 const mapHit = (hit: any): Ad => {
   const src = hit._source ?? {};
 
-  let extraFields: Record<string, any> = {};
-  if (Array.isArray(src.extraFields)) {
-    src.extraFields.forEach((f: any) => {
-      if (f.key) extraFields[f.key] = f.value;
+  // extraFields is a flat object like { make: "77", year: 2025, new_used: "1" }
+  const extraFields: Record<string, any> = src.extraFields ?? {};
+
+  // Photos come from 'photos' array with externalID
+  const photos = src.photos ?? src.images ?? [];
+  const images = Array.isArray(photos)
+    ? photos
+        .sort((a: any, b: any) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0))
+        .map((p: any) => ({
+          id: String(p.id ?? p.externalID ?? Math.random()),
+          url: buildImageUrl(p.externalID ?? ''),
+        }))
+        .filter((img: any) => img.url !== '')
+    : [];
+
+  // Also try coverPhoto as fallback
+  const coverPhoto = src.coverPhoto;
+  if (images.length === 0 && coverPhoto?.externalID) {
+    images.push({
+      id: String(coverPhoto.id ?? 'cover'),
+      url: buildImageUrl(coverPhoto.externalID),
     });
-  } else if (src.extraFields && typeof src.extraFields === 'object') {
-    extraFields = src.extraFields;
+  }
+
+  // Map extraFields to readable values
+  const mappedExtraFields: Record<string, any> = { ...extraFields };
+
+  // Normalize condition: new_used 1 = new, 2 = used
+  if (extraFields.new_used) {
+    mappedExtraFields.condition =
+      extraFields.new_used === '1' || extraFields.new_used === 1
+        ? 'New'
+        : 'Used';
+  }
+
+  // Normalize mileage field name
+  if (extraFields.mileage !== undefined) {
+    mappedExtraFields.kilometers = extraFields.mileage;
+  }
+
+  // Normalize fuel/petrol
+  if (extraFields.petrol) {
+    mappedExtraFields.fuel = extraFields.petrol;
+  }
+
+  // Normalize brand/make
+  if (extraFields.make) {
+    mappedExtraFields.brand = extraFields.make;
   }
 
   return {
@@ -159,12 +195,7 @@ const mapHit = (hit: any): Ad => {
     title: src.title ?? '',
     price: src.price ?? undefined,
     currency: src.currency ?? 'USD',
-    images: Array.isArray(src.images)
-      ? src.images.map((img: any) => ({
-          id: img.id ?? '',
-          url: getImageUrl(img.url ?? img.src ?? ''),
-        }))
-      : [],
+    images,
     location: {
       externalID: src.location?.externalID ?? '',
       name: src.location?.name ?? '',
@@ -176,7 +207,7 @@ const mapHit = (hit: any): Ad => {
     timestamp: src.timestamp ?? 0,
     isElite: src.isElite ?? false,
     isHighlighted: src.isHighlighted ?? false,
-    extraFields,
+    extraFields: mappedExtraFields,
   };
 };
 
@@ -186,13 +217,7 @@ export const fetchAds = async (
 ): Promise<AdsResponse> => {
   const from = page * PAGE_SIZE;
   const ndjson = buildAdsQuery(filters, from);
-  
-  console.log('Fetching ads with query:', ndjson); // ← add this
-  
   const data = await msearchRequest(ndjson);
-  
-  console.log('API response:', JSON.stringify(data).slice(0, 500)); // ← add this
-  
   const response = data.responses?.[0];
   const hits = response?.hits?.hits ?? [];
   const total = response?.hits?.total?.value ?? 0;
